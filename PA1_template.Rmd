@@ -1,0 +1,182 @@
+Title : Reproducible Research project 1
+
+STEP 1 : Loading and Reprocessing data
+
+```{r}
+setwd("C:/NelsonRepo/Technical/DataScience/R_Programming/Reproducible Research/Week2Project/repdata")
+InputData <- read.csv('activity.csv')
+
+```
+
+
+
+STEP 2 :  Mean total number of steps taken per day
+
+
+Ignore missing NA value
+
+```{r}
+InputDataNoNA <- InputData[complete.cases(InputData),]
+```
+
+    1. Number of steps taken each day
+    
+    ```{r}
+    StepsDaySum <- aggregate(InputDataNoNA["steps"], by=InputDataNoNA["date"], FUN=sum)
+    StepsDaySum
+    ```
+    
+    2. Histogram for total number of steps taken each day
+    
+    ```{r}
+    str(StepsDaySum)
+    library(ggplot2)  
+    ggplot(StepsDaySum, aes(x=steps)) + geom_histogram(fill = "blue", binwidth = 1000) + labs(title = "Daily Steps", x = "Total Steps", y = "Frequency")
+    
+    ```
+    
+    3. Mean and Median of total steps taken each day
+    
+    ```{r}
+    
+   StepsDaymean <-  mean(InputDataNoNA$steps, na.rm=TRUE)
+   StepsDaymean
+   
+   StepsDaymedian <-  median(InputDataNoNA$steps, na.rm=TRUE)
+   StepsDaymedian
+    
+    ```
+    
+    4. Average daily activity pattern
+    
+    ```{r}
+   library(dplyr)
+        Avgactpat <- InputData %>% group_by(interval)%>% filter(!is.na(steps))%>%summarise(avgsteps=mean(steps,na.rm=TRUE))
+   
+   
+    ```
+   
+   5. Which interval has maximum number of steps
+   
+  ```{r}
+  
+ Avgactpat[which.max(Avgactpat$avgsteps),]
+ 
+ ```
+ 
+
+STEP 3 :  Imputing missing values
+
+
+      1.  Total number for missing values in the dataset
+      
+      
+      ```{r}
+      
+      sum(is.na(InputData$steps))
+      
+      ```
+      
+      2. Input missing values
+      
+      
+      ```{r}
+      
+      tmpInputData <- InputData
+      
+      Nulv <- is.na(tmpInputData$steps)
+      avginterval <- tapply(tmpInputData$steps,tmpInputData$interval,mean,na.rm=TRUE,simplify=TRUE)
+      
+      tmpInputData$steps[Nulv] <- avginterval[as.character(tmpInputData$interval[Nulv])]
+      
+      
+      
+      ```
+      3. Histogram for total number of steps taken each day and mean, median vaue
+      
+      
+      ```{r}
+      
+      
+      names(tmpInputData)
+      
+      TotalSteps2 <- tmpInputData %>% group_by(date) %>% summarise(totalsteps = sum(steps, na.rm=TRUE))
+      names(TotalSteps2)
+      
+      ggplot(TotalSteps2,aes(x= totalsteps)) + geom_histogram(fill = "blue", binwidth = 1000) +
+      labs(title = "Daily Steps including Missing values", x = "Interval", y = "No. of Steps")
+      
+      ```
+      
+      mean & Median
+      
+      ```{r}
+      
+      Mean_Steps2 <- mean(TotalSteps2$totalsteps,na.rm=TRUE)
+      Mean_Steps2
+      
+      Median_Steps2 <- median(TotalSteps2$totalsteps,na.rm=TRUE)
+      Mean_Steps2
+      ```
+  
+  STEP4  :Differences in activity patterns between weekdays and weekends
+  
+  
+     
+     1. Categorize into weekdays and weekend
+     
+      ```{r}
+        tmpInputData2 <- tmpInputData
+        
+        tmpInputData2$date<- as.Date(tmpInputData2$date)  ##covert chr to date
+        
+        tmpInputData2<- tmpInputData2 %>% 
+        mutate(weektype= ifelse(weekdays(tmpInputData2$date)=="Saturday" | weekdays(tmpInputData2$date)=="Sunday","Weekend","Weekday"))
+        
+        head(tmpInputData2)
+        
+      ```
+      
+           
+      2.  Plot the graphy for weekend and weekday
+      
+      
+      ```{r}
+      
+       InputDatawktyp <- tmpInputData2 %>% group_by(interval,weektype) %>% summarise(ttlsteps = mean(steps,na.rm=TRUE))
+       
+       head(InputDatawktyp)
+       
+      
+        plot<- ggplot(InputDatawktyp, aes(x =interval , y=ttlsteps, color=weektype)) +
+               geom_line() +
+               labs(title = "Avg. Daily Steps by Weektype", x = "Interval", y = "No. of Steps") +
+               facet_wrap(~weektype, ncol = 1, nrow=2)
+               
+        print(plot)
+        
+        ```
+       
+       
+      
+      
+      
+        
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+ 
+ 
+   
+  
+   
+   
+  
