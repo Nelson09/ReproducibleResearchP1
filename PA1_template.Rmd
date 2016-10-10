@@ -1,17 +1,18 @@
+---
+output: html_document
+---
 Title : Reproducible Research project 1
 
 STEP 1 : Loading and Reprocessing data
 
 ```{r}
 setwd("C:/NelsonRepo/Technical/DataScience/R_Programming/Reproducible Research/Week2Project/repdata")
+library(dplyr)
 InputData <- read.csv('activity.csv')
 
 ```
 
-
-
 STEP 2 :  Mean total number of steps taken per day
-
 
 Ignore missing NA value
 
@@ -19,16 +20,16 @@ Ignore missing NA value
 InputDataNoNA <- InputData[complete.cases(InputData),]
 ```
 
-    1. Number of steps taken each day
+ 1. Number of steps taken each day
     
     ```{r}
     StepsDaySum <- aggregate(InputDataNoNA["steps"], by=InputDataNoNA["date"], FUN=sum)
-    StepsDaySum
+    head(StepsDaySum)
     ```
     
-    2. Histogram for total number of steps taken each day
-    
-    ```{r}
+  2. Histogram for total number of steps taken each day
+  
+  ```{r}
     str(StepsDaySum)
     library(ggplot2)  
     ggplot(StepsDaySum, aes(x=steps)) + geom_histogram(fill = "blue", binwidth = 1000) + labs(title = "Daily Steps", x = "Total Steps", y = "Frequency")
@@ -38,50 +39,49 @@ InputDataNoNA <- InputData[complete.cases(InputData),]
     3. Mean and Median of total steps taken each day
     
     ```{r}
-    
-   StepsDaymean <-  mean(InputDataNoNA$steps, na.rm=TRUE)
-   StepsDaymean
-   
-   StepsDaymedian <-  median(InputDataNoNA$steps, na.rm=TRUE)
-   StepsDaymedian
+    Mean_Steps<- mean(StepsDaySum$steps, na.rm=TRUE)
+    Mean_Steps
+ 
+    Median_Steps<- median(StepsDaySum$steps, na.rm=TRUE)
+    Median_Steps 
     
     ```
-    
+  
     4. Average daily activity pattern
     
     ```{r}
-   library(dplyr)
-        Avgactpat <- InputData %>% group_by(interval)%>% filter(!is.na(steps))%>%summarise(avgsteps=mean(steps,na.rm=TRUE))
-   
-   
+    Avgactpat <- InputData %>% group_by(interval)%>% filter(!is.na(steps))%>%summarise(avgsteps=mean(steps,na.rm=TRUE))
+    
+    head(Avgactpat)
     ```
+    
+     Graph
+     
+     ```{r fig.height = 4, fig.width = 6}
+     ggplot(Avgactpat, aes(x =interval , y=avgsteps)) + geom_line(color="blue", size=1) + labs(title = "Avg. Daily Steps", x = "interval", y = "Avg. Steps per day")
+     ```
+    
+    5. Which interval has maximum number of steps
    
-   5. Which interval has maximum number of steps
+   ```{r}
+   Output <- Avgactpat[which.max(Avgactpat$avgsteps),]
+   Output
    
-  ```{r}
+   ```
+   
+  STEP 3: Input missing value
   
- Avgactpat[which.max(Avgactpat$avgsteps),]
- 
- ```
- 
-
-STEP 3 :  Imputing missing values
-
-
-      1.  Total number for missing values in the dataset
-      
-      
-      ```{r}
-      
-      sum(is.na(InputData$steps))
-      
-      ```
-      
-      2. Input missing values
-      
-      
-      ```{r}
-      
+     1.  Total number for missing values in the dataset
+  
+  ```{r}
+   sum(is.na(InputData$steps))
+   
+  ```
+  
+     2.  Input missing values
+     
+    ```{r}
+        
       tmpInputData <- InputData
       
       Nulv <- is.na(tmpInputData$steps)
@@ -89,41 +89,32 @@ STEP 3 :  Imputing missing values
       
       tmpInputData$steps[Nulv] <- avginterval[as.character(tmpInputData$interval[Nulv])]
       
-      
-      
-      ```
-      3. Histogram for total number of steps taken each day and mean, median vaue
-      
-      
-      ```{r}
-      
-      
-      names(tmpInputData)
+    ```
+    
+    3. Histogram for total number of steps taken each day and mean, median vaue
+    
+    ```{r}
       
       TotalSteps2 <- tmpInputData %>% group_by(date) %>% summarise(totalsteps = sum(steps, na.rm=TRUE))
-      names(TotalSteps2)
-      
+     
       ggplot(TotalSteps2,aes(x= totalsteps)) + geom_histogram(fill = "blue", binwidth = 1000) +
       labs(title = "Daily Steps including Missing values", x = "Interval", y = "No. of Steps")
       
-      ```
-      
-      mean & Median
-      
+    ```
+    
+       mean & Median
+       
       ```{r}
-      
       Mean_Steps2 <- mean(TotalSteps2$totalsteps,na.rm=TRUE)
       Mean_Steps2
       
       Median_Steps2 <- median(TotalSteps2$totalsteps,na.rm=TRUE)
       Mean_Steps2
       ```
-  
+      
   STEP4  :Differences in activity patterns between weekdays and weekends
   
-  
-     
-     1. Categorize into weekdays and weekend
+   1. Categorize into weekdays and weekend
      
       ```{r}
         tmpInputData2 <- tmpInputData
@@ -156,27 +147,8 @@ STEP 3 :  Imputing missing values
         print(plot)
         
         ```
-       
-       
+    
       
       
       
-        
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
- 
- 
-   
-  
-   
-   
-  
+    
